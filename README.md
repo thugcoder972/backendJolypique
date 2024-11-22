@@ -41,6 +41,8 @@ mvn spring-boot:run
 Par défaut, ce projet utilise H2 en mémoire. Si vous souhaitez utiliser une autre base de données (par exemple, PostgresSQL), vous pouvez configurer les paramètres dans le fichier application.properties.
 
 
+
+
 # Configuration de la base de données PostgreSQL
 spring.datasource.url=jdbc:postgresql://localhost:54../postgres
 spring.datasource.username=postgres
