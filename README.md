@@ -49,6 +49,11 @@ spring.datasource.driver-class-name=org.postgresql.Driver
 
 
 
+
+
+
+
+
 Endpoints API
 Authentification
 POST /api/register: Enregistrement de l'utilisateur
