@@ -3,23 +3,26 @@ package com.mysycorp.Backendjo.entity;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "users")
 public class User implements UserDetails {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -30,17 +33,17 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = true, unique = true) // Autoriser null pour email
-    private String email; // Ajout de l'email qui peut être nul
+    @Column(nullable = true, unique = true)
+    private String email;
 
     @Column(length = 20)
     private String tel;
 
-    @Column(nullable = false) // Le champ type ne peut pas être nul
-    private String type = "user"; // Valeur par défaut
+    @Column(nullable = false)
+    private String type = "user";
 
-    // Relation OneToMany avec Achat : un utilisateur peut faire plusieurs achats
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<Achat> achats = new HashSet<>();
 
     // Getters and Setters
@@ -52,6 +55,7 @@ public class User implements UserDetails {
         this.id = id;
     }
 
+    @Override
     public String getUsername() {
         return username;
     }
@@ -60,6 +64,7 @@ public class User implements UserDetails {
         this.username = username;
     }
 
+    @Override
     public String getPassword() {
         return password;
     }
@@ -100,10 +105,11 @@ public class User implements UserDetails {
         this.achats = achats;
     }
 
+    // UserDetails methods
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Set<GrantedAuthority> authorities = new HashSet<>();
-        authorities.add(new SimpleGrantedAuthority(type)); // Ajoutez le type comme autorité
+        authorities.add(new SimpleGrantedAuthority(this.type));
         return authorities;
     }
 
@@ -127,13 +133,14 @@ public class User implements UserDetails {
         return true;
     }
 
-    public User orElse(Object object) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'orElse'");
+    // Méthodes utilitaires (optionnelles)
+    public void addAchat(Achat achat) {
+        achats.add(achat);
+        achat.setUser(this);
     }
 
-    public boolean isPresent() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'isPresent'");
+    public void removeAchat(Achat achat) {
+        achats.remove(achat);
+        achat.setUser(null);
     }
 }

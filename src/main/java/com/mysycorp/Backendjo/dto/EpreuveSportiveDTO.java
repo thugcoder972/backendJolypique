@@ -9,7 +9,7 @@ public class EpreuveSportiveDTO {
     private String niveauEpreuve;
     private String imageUrl;
     private String hall;
-    private Integer durationInSeconds;
+    private Long durationInSeconds;
     private List<TarifDTO>tarifs;
     private Double ticketPrice;
 
@@ -18,7 +18,7 @@ public class EpreuveSportiveDTO {
     }
 
     public EpreuveSportiveDTO(Long id, String nameEpreuveSportive, String typeEpreuveSportive,
-                              String niveauEpreuve, String imageUrl, String hall, Integer durationInSecond,Double ticketPrice) {
+                              String niveauEpreuve, String imageUrl, String hall, Long durationInSecond,Double ticketPrice) {
         this.id = id;
         this.nameEpreuveSportive = nameEpreuveSportive;
         this.typeEpreuveSportive = typeEpreuveSportive;
@@ -78,11 +78,11 @@ public class EpreuveSportiveDTO {
         this.hall = hall;
     }
 
-    public Integer getDurationInSeconds() {
+    public Long getDurationInSeconds() {
         return durationInSeconds;
     }
 
-    public void setDurationInSeconds(Integer durationInSeconds) {
+    public void setDurationInSeconds(Long durationInSeconds) {
         this.durationInSeconds = durationInSeconds;
     }
 

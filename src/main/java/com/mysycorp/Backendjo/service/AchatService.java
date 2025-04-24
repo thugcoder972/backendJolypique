@@ -65,5 +65,20 @@ public class AchatService {
     public List<Achat> findAll() {
         return achatRepository.findAll(); // Appeler le repository pour obtenir tous les achats
 }
+
+    public Object createAchat(AchatDTO any) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'createAchat'");
+    }
+
+    public void deleteAchat(long l) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'deleteAchat'");
+    }
+
+    public Object save(Achat any) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'save'");
+    }
 }
 

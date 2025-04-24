@@ -88,25 +88,23 @@ public class ComplexeSportif {
         this.tickets = tickets;
     }
 
-    public Object getName() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getName'");
+    public String getName() {
+        return this.nameComplexe;
+    }
+    
+    public void setName(String name) {
+        this.nameComplexe = name;
+    }
+    
+    public String getLocation() {
+        return this.adresseComplexe;
+    }
+    
+    public void setLocation(String location) {
+        this.adresseComplexe = location;
     }
 
-    public void setName(Object name) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setName'");
-    }
-
-    public Object getLocation() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getLocation'");
-    }
-
-    public void setLocation(Object location) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setLocation'");
-    }
+    
 }
 
 
