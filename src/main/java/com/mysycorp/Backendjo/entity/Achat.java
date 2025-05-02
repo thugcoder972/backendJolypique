@@ -27,6 +27,11 @@ public class Achat {
     private LocalDateTime dateAchat;
     private double prixTotal;  // Ajout de l'attribut prixTotal
 
+    // Nouveaux champs pour le paiement
+    private String paymentStatus; // "PENDING", "PAID", "FAILED"
+    private String transactionId; // Identifiant unique du paiement
+    private LocalDateTime paymentDate; // Quand le paiement a été fait
+
     // Relation ManyToOne avec Tarif : un achat est associé à un tarif
     // @ManyToOne(fetch = FetchType.LAZY, optional = false)
     // @JoinColumn(name = "tarif_id", nullable = false)
@@ -119,5 +124,31 @@ public class Achat {
     public void removeTicket(Ticket ticket) {
         tickets.remove(ticket);
         ticket.setAchat(null);
+    }
+
+    // --- GETTERS payment---
+    public String getPaymentStatus() {
+        return this.paymentStatus;
+    }
+
+    public String getTransactionId() {
+        return this.transactionId;
+    }
+
+    public LocalDateTime getPaymentDate() {
+        return this.paymentDate;
+    }
+
+    // --- SETTERS payment ---
+    public void setPaymentStatus(String paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
+    }
+
+    public void setPaymentDate(LocalDateTime paymentDate) {
+        this.paymentDate = paymentDate;
     }
 }
