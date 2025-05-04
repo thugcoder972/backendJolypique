@@ -22,23 +22,26 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/api/achats")
 public class AchatController {
 
-    @Autowired
-    private AchatRepository achatRepository;
+    private final AchatRepository achatRepository;
+    private final UserRepository userRepository;
+    private final TicketRepository ticketRepository;
+    private final AchatMapper achatMapper;
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private TicketRepository ticketRepository;
-
-    @Autowired
-    private AchatMapper achatMapper;
+    public AchatController(AchatRepository achatRepository,
+                          UserRepository userRepository,
+                          TicketRepository ticketRepository,
+                          AchatMapper achatMapper) {
+        this.achatRepository = achatRepository;
+        this.userRepository = userRepository;
+        this.ticketRepository = ticketRepository;
+        this.achatMapper = achatMapper;
+    }
 
     @PostMapping
     @Transactional
@@ -62,8 +65,8 @@ public class AchatController {
 
         // Calcul du prix total
         double prixTotal = tickets.stream()
-        .flatMap(ticket -> ticket.getTarifs() != null ? ticket.getTarifs().stream() : Stream.empty())
-        .mapToDouble(tarif -> tarif != null && tarif.getTarif() != null ? tarif.getTarif() : 0.0)     // Supposant que Ticket a une méthode getPrice()
+                .flatMap(ticket -> ticket.getTarifs().stream())
+                .mapToDouble(tarif -> tarif.getTarif())
                 .sum();
         achat.setPrixTotal(prixTotal);
 
@@ -73,7 +76,7 @@ public class AchatController {
 
     @GetMapping
     public ResponseEntity<List<AchatDTO>> getAllAchats() {
-        List<Achat> achats = achatRepository.findAll();
+        List<Achat> achats = achatRepository.findAllWithTickets();
         return ResponseEntity.ok(achats.stream()
                 .map(achatMapper::toDTO)
                 .collect(Collectors.toList()));
@@ -81,9 +84,17 @@ public class AchatController {
 
     @GetMapping("/{id}")
     public ResponseEntity<AchatDTO> getAchatById(@PathVariable Long id) {
-        return achatRepository.findById(id)
+        return achatRepository.findByIdWithTickets(id)
                 .map(achat -> ResponseEntity.ok(achatMapper.toDTO(achat)))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<AchatDTO>> getAchatsByUser(@PathVariable Long userId) {
+        List<Achat> achats = achatRepository.findByUser_Id(userId);
+        return ResponseEntity.ok(achats.stream()
+                .map(achatMapper::toDTO)
+                .collect(Collectors.toList()));
     }
 
     @PostMapping("/{achatId}/pay")
@@ -92,7 +103,7 @@ public class AchatController {
             @PathVariable Long achatId,
             @RequestBody PaymentRequest paymentRequest) {
         
-        Achat achat = achatRepository.findById(achatId)
+        Achat achat = achatRepository.findByIdWithTickets(achatId)
                 .orElseThrow(() -> new ResourceNotFoundException("Achat non trouvé avec l'ID: " + achatId));
 
         try {
@@ -136,11 +147,5 @@ public class AchatController {
         
         // Simulation de paiement réussi
         return true;
-        
-        // En production, remplacer par un appel à Stripe/PayPal/etc.
-        // Exemple Stripe: Stripe.apiKey = "sk_test_...";
-        // Map<String, Object> params = new HashMap<>();
-        // params.put("amount", amount.multiply(BigDecimal.valueOf(100)).intValue());
-        // etc.
     }
 }

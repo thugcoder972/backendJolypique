@@ -1,15 +1,8 @@
 package com.mysycorp.Backendjo.entity;
 
+import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
-
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
 
 @Entity
 public class Administration {
@@ -23,14 +16,20 @@ public class Administration {
     @Column(nullable = false, length = 255)
     private String adresseAdministration;
 
-    // Relation OneToMany avec ComplexeSportif : une administration peut gérer plusieurs complexes sportifs
-    @OneToMany(mappedBy = "administration", cascade = CascadeType.ALL)
+    @Column(length = 100)
+    private String role;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @OneToMany(mappedBy = "administration", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ComplexeSportif> complexes = new HashSet<>();
-    // Relation OneToMany avec Ticket : une administration peut gérer plusieurs tickets
-    @OneToMany(mappedBy = "administration", cascade = CascadeType.ALL)
+
+    @OneToMany(mappedBy = "administration", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Ticket> tickets = new HashSet<>();
 
-    // Getters and Setters
+    // Getters et Setters
     public Long getId() {
         return id;
     }
@@ -55,6 +54,22 @@ public class Administration {
         this.adresseAdministration = adresseAdministration;
     }
 
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
     public Set<ComplexeSportif> getComplexes() {
         return complexes;
     }
@@ -69,25 +84,5 @@ public class Administration {
 
     public void setTickets(Set<Ticket> tickets) {
         this.tickets = tickets;
-    }
-
-    public User getUser() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getUser'");
-    }
-
-    public void setUser(User userDetails) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setUser'");
-    }
-
-    public Object getRole() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getRole'");
-    }
-
-    public void setRole(Object role) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setRole'");
     }
 }
