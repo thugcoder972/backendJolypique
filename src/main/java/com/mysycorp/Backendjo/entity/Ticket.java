@@ -22,60 +22,52 @@ import tech.ailef.snapadmin.external.annotations.DisplayName;
 public class Ticket {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // Identifiant unique du ticket
+    private Long id;
 
     @Column(nullable = false)
-    private String seat; // Numéro ou identifiant du siège
+    private String seat;
 
     @Column(nullable = false)
-    private Boolean isUsed; // Indique si le ticket a été utilisé
+    private Boolean isUsed = false;  // Initialisation avec valeur par défaut
 
     @Column(nullable = false)
-    private LocalDateTime startTimeEpreuve; // Heure de début de l'épreuve associée au ticket
+    private LocalDateTime startTimeEpreuve;
 
-    // Relation ManyToOne avec Achat : un ticket est associé à un achat
     @ManyToOne
     @JoinColumn(name = "achat_id")
-
     private Achat achat;
 
-    // Relation ManyToOne avec Administration : un ticket est géré par une administration
     @ManyToOne
     @JoinColumn(name = "administration_id", nullable = true)
     private Administration administration;
 
-    // Relation ManyToOne avec ComplexeSportif : un ticket est associé à un complexe sportif
     @ManyToOne
     @JoinColumn(name = "complexe_sportif_id", nullable = false)
     private ComplexeSportif complexeSportif;
 
-    // Relation ManyToOne avec EpreuveSportive : un ticket est associé à une épreuve sportive
     @ManyToOne
     @JoinColumn(name = "epreuve_sportive_id", nullable = false)
     private EpreuveSportive epreuveSportive;
 
-    // Relation ManyToOne avec Hall : un ticket est lié à un hall
     @ManyToOne
     @JoinColumn(name = "hall_id", nullable = false)
     private Hall hall;
 
-    // Relation ManyToMany avec Tarif : un ticket peut avoir plusieurs tarifs
     @ManyToMany
     @JoinTable(
         name = "ticket_tarif",
         joinColumns = @JoinColumn(name = "ticket_id"),
         inverseJoinColumns = @JoinColumn(name = "tarif_id")
     )
-    private Set<Tarif> tarifs = new HashSet<>(); // Ensemble de tarifs associés au ticket
+    private Set<Tarif> tarifs = new HashSet<>();
 
     @Column(nullable = false)
-    private int remainingPlaces; // Nombre de places restantes pour cet événement
+    private int remainingPlaces;
 
-    // Constructeur par défaut
     public Ticket() {
+        // Constructeur par défaut nécessaire pour JPA
     }
 
-    // Constructeur pour la désérialisation JSON
     @JsonCreator
     public Ticket(
         @JsonProperty("seat") String seat,
@@ -83,10 +75,10 @@ public class Ticket {
         @JsonProperty("startTimeEpreuve") LocalDateTime startTimeEpreuve,
         @JsonProperty("remainingPlaces") int remainingPlaces) {
         
-        this.seat = seat; // Initialise le siège
-        this.isUsed = isUsed; // Initialise l'état d'utilisation
-        this.startTimeEpreuve = startTimeEpreuve; // Initialise l'heure de début de l'épreuve
-        this.remainingPlaces = remainingPlaces; // Initialise le nombre de places restantes
+        this.seat = seat;
+        this.isUsed = isUsed != null ? isUsed : false;
+        this.startTimeEpreuve = startTimeEpreuve;
+        this.remainingPlaces = remainingPlaces;
     }
 
     // Getters et Setters
@@ -111,7 +103,7 @@ public class Ticket {
     }
 
     public void setIsUsed(Boolean isUsed) {
-        this.isUsed = isUsed;
+        this.isUsed = isUsed != null ? isUsed : false;
     }
 
     public LocalDateTime getStartTimeEpreuve() {
@@ -181,13 +173,11 @@ public class Ticket {
         this.remainingPlaces = remainingPlaces;
     }
 
-    // Méthode pour vérifier si le ticket est utilisé
     public boolean isUsed() {
         return Boolean.TRUE.equals(isUsed);
     }
 
-    public void setUsed(Object used) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setUsed'");
+    public void setUsed(boolean used) {
+        this.isUsed = used;
     }
 }

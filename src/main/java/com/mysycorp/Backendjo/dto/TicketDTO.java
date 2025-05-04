@@ -5,17 +5,18 @@ import java.util.Set;
 
 public class TicketDTO {
     private Long id;
+    private String seat;
+    private Boolean isUsed;
     private LocalDateTime startTimeEpreuve;
+    private int remainingPlaces;
     private Long achatId;
     private Long administrationId;
     private Long complexeSportifId;
     private Long epreuveSportiveId;
     private Long hallId;
     private Set<Long> tarifIds;
-    private int remainingPlaces;
-    private String seat;
 
-    // Getters and Setters
+    // Getters et Setters
     public Long getId() {
         return id;
     }
@@ -24,12 +25,36 @@ public class TicketDTO {
         this.id = id;
     }
 
+    public String getSeat() {
+        return seat;
+    }
+
+    public void setSeat(String seat) {
+        this.seat = seat;
+    }
+
+    public Boolean getIsUsed() {
+        return isUsed;
+    }
+
+    public void setIsUsed(Boolean isUsed) {
+        this.isUsed = isUsed;
+    }
+
     public LocalDateTime getStartTimeEpreuve() {
         return startTimeEpreuve;
     }
 
     public void setStartTimeEpreuve(LocalDateTime startTimeEpreuve) {
         this.startTimeEpreuve = startTimeEpreuve;
+    }
+
+    public int getRemainingPlaces() {
+        return remainingPlaces;
+    }
+
+    public void setRemainingPlaces(int remainingPlaces) {
+        this.remainingPlaces = remainingPlaces;
     }
 
     public Long getAchatId() {
@@ -78,26 +103,5 @@ public class TicketDTO {
 
     public void setTarifIds(Set<Long> tarifIds) {
         this.tarifIds = tarifIds;
-    }
-
-    public int getRemainingPlaces() {
-        return remainingPlaces;
-    }
-
-    public void setRemainingPlaces(int remainingPlaces) {
-        this.remainingPlaces = remainingPlaces;
-    }
-
-    public String getSeat() {
-        return seat;
-    }
-
-    public void setSeat(String seat) {
-        this.seat = seat;
-    }
-
-    public Object isUsed() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'isUsed'");
     }
 }

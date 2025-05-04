@@ -1,68 +1,85 @@
 package com.mysycorp.Backendjo.controller;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import com.mysycorp.Backendjo.dto.TarifDTO;
 import com.mysycorp.Backendjo.entity.Tarif;
 import com.mysycorp.Backendjo.repository.TarifRepository;
+import com.mysycorp.Backendjo.service.TarifService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/tarifs")
 public class TarifController {
+
     @Autowired
     private TarifRepository tarifRepository;
 
-    // Récupérer tous les tarifs
-    @GetMapping
-    public List<Tarif> getAllTarifs() {
-        return tarifRepository.findAll();
+    @Autowired
+    private TarifService tarifService;
+
+    // Version avec DTO
+    @PostMapping
+    public ResponseEntity<?> createTarif(@RequestBody TarifDTO tarifDTO) {
+        try {
+            // Validation minimale
+            if (tarifDTO.getNameTarif() == null || tarifDTO.getTarif() == null) {
+                return ResponseEntity.badRequest().body("nameTarif et tarif sont obligatoires");
+            }
+
+            Tarif tarif = tarifService.convertToEntity(tarifDTO);
+            Tarif savedTarif = tarifRepository.save(tarif);
+            return ResponseEntity.status(HttpStatus.CREATED).body(tarifService.convertToDto(savedTarif));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Erreur lors de la création: " + e.getMessage());
+        }
     }
 
-    // Récupérer un tarif par ID
+    // Récupérer tous les tarifs (version DTO)
+    @GetMapping
+    public ResponseEntity<List<TarifDTO>> getAllTarifs() {
+        List<TarifDTO> tarifs = tarifRepository.findAll()
+                .stream()
+                .map(tarifService::convertToDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(tarifs);
+    }
+
+    // Récupérer un tarif par ID (version DTO)
     @GetMapping("/{id}")
-    public ResponseEntity<Tarif> getTarifById(@PathVariable Long id) {
+    public ResponseEntity<TarifDTO> getTarifById(@PathVariable Long id) {
         return tarifRepository.findById(id)
+                .map(tarifService::convertToDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // Créer un nouveau tarif
-    @PostMapping
-    public Tarif createTarif(@RequestBody Tarif tarif) {
-        return tarifRepository.save(tarif);
-    }
-
-    // Mettre à jour un tarif existant
+    // Mettre à jour un tarif
     @PutMapping("/{id}")
-    public ResponseEntity<Tarif> updateTarif(@PathVariable Long id, @RequestBody Tarif tarifDetails) {
+    public ResponseEntity<?> updateTarif(@PathVariable Long id, @RequestBody TarifDTO tarifDTO) {
         return tarifRepository.findById(id)
-                .map(tarif -> {
-                    tarif.setNameTarif(tarifDetails.getNameTarif());
-                    tarif.setTarif(tarifDetails.getTarif());
-                    tarif.setOffreTarif(tarifDetails.getOffreTarif());
-                    // On peut aussi mettre à jour d'autres relations si nécessaire
-                    Tarif updatedTarif = tarifRepository.save(tarif);
-                    return ResponseEntity.ok(updatedTarif);
-                }).orElse(ResponseEntity.notFound().build());
+                .map(existingTarif -> {
+                    // Mise à jour des champs
+                    existingTarif.setNameTarif(tarifDTO.getNameTarif());
+                    existingTarif.setOffreTarif(tarifDTO.getOffreTarif());
+                    existingTarif.setTarif(tarifDTO.getTarif());
+                    
+                    Tarif updated = tarifRepository.save(existingTarif);
+                    return ResponseEntity.ok(tarifService.convertToDto(updated));
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    // Supprimer un tarif par ID
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> deleteTarif(@PathVariable Long id) {
-        return tarifRepository.findById(id)
-                .map(tarif -> {
-                    tarifRepository.delete(tarif);
-                    return ResponseEntity.ok().build();
-                }).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Void> deleteTarif(@PathVariable Long id) {
+        if (!tarifRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        tarifRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }
