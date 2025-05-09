@@ -48,6 +48,13 @@ public class AchatService {
         return achatMapper.toDTO(achat);
     }
 
+    @Transactional(readOnly = true)
+public List<AchatDTO> getAchatsByUserId(Long userId) {
+    List<Achat> achats = achatRepository.findByUser_Id(userId);
+    return achats.stream()
+                 .map(achatMapper::toDTO)
+                 .collect(Collectors.toList());
+}
     // @Transactional
     // public AchatDTO createAchat(AchatDTO achatDTO) {
     //     User user = userRepository.findById(achatDTO.getUserId())

@@ -21,6 +21,8 @@ public interface AchatRepository extends JpaRepository<Achat, Long>{
     // Ajoutez aussi cette variante pour getAllAchats
     @Query("SELECT DISTINCT a FROM Achat a LEFT JOIN FETCH a.tickets")
     List<Achat> findAllWithTickets();    
+    @Query("SELECT a FROM Achat a LEFT JOIN FETCH a.tickets WHERE a.user.id = :userId")
+List<Achat> findByUserWithTickets(@Param("userId") Long userId);
 // Rechercher tous les achats par un utilisateur donné
 List<Achat> findByUser_Id(Long userId);
 

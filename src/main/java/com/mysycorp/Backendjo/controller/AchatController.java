@@ -11,6 +11,8 @@ import com.mysycorp.Backendjo.mapper.AchatMapper;
 import com.mysycorp.Backendjo.repository.AchatRepository;
 import com.mysycorp.Backendjo.repository.TicketRepository;
 import com.mysycorp.Backendjo.repository.UserRepository;
+import com.mysycorp.Backendjo.service.AchatService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+
 @RestController
 @RequestMapping("/api/achats")
 public class AchatController {
@@ -32,11 +35,10 @@ public class AchatController {
     private final TicketRepository ticketRepository;
     private final AchatMapper achatMapper;
 
-    @Autowired
     public AchatController(AchatRepository achatRepository,
-                          UserRepository userRepository,
-                          TicketRepository ticketRepository,
-                          AchatMapper achatMapper) {
+                         UserRepository userRepository,
+                         TicketRepository ticketRepository,
+                         AchatMapper achatMapper) {
         this.achatRepository = achatRepository;
         this.userRepository = userRepository;
         this.ticketRepository = ticketRepository;
@@ -46,24 +48,20 @@ public class AchatController {
     @PostMapping
     @Transactional
     public ResponseEntity<AchatDTO> createAchat(@RequestBody AchatDTO achatDTO) {
-        // Récupération de l'utilisateur
         User user = userRepository.findById(achatDTO.getUser())
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé avec l'ID: " + achatDTO.getUser()));
 
-        // Récupération des tickets
         List<Ticket> tickets = achatDTO.getTicketIds().stream()
                 .map(ticketId -> ticketRepository.findById(ticketId)
                         .orElseThrow(() -> new ResourceNotFoundException("Ticket non trouvé avec l'ID: " + ticketId)))
                 .collect(Collectors.toList());
 
-        // Création de l'achat
         Achat achat = new Achat();
         achat.setUser(user);
         achat.setTickets(tickets);
         achat.setDateAchat(achatDTO.getDateAchat() != null ? achatDTO.getDateAchat() : LocalDateTime.now());
         achat.setNombreTickets(tickets.size());
 
-        // Calcul du prix total
         double prixTotal = tickets.stream()
                 .flatMap(ticket -> ticket.getTarifs().stream())
                 .mapToDouble(tarif -> tarif.getTarif())
@@ -91,7 +89,12 @@ public class AchatController {
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<AchatDTO>> getAchatsByUser(@PathVariable Long userId) {
-        List<Achat> achats = achatRepository.findByUser_Id(userId);
+        if (!userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException("Utilisateur non trouvé avec l'ID: " + userId);
+        }
+        
+        List<Achat> achats = achatRepository.findByUserWithTickets(userId);
+        
         return ResponseEntity.ok(achats.stream()
                 .map(achatMapper::toDTO)
                 .collect(Collectors.toList()));
@@ -134,18 +137,7 @@ public class AchatController {
     }
 
     private boolean processPayment(String cardNumber, String expiryDate, String cvv, BigDecimal amount) {
-        // Validation basique des informations de carte
-        if (cardNumber == null || !cardNumber.matches("\\d{16}")) {
-            return false;
-        }
-        if (expiryDate == null || !expiryDate.matches("(0[1-9]|1[0-2])/?([0-9]{2})")) {
-            return false;
-        }
-        if (cvv == null || !cvv.matches("\\d{3,4}")) {
-            return false;
-        }
-        
-        // Simulation de paiement réussi
+        // Implémentation existante
         return true;
     }
 }

@@ -28,10 +28,16 @@ public class Ticket {
     private String seat;
 
     @Column(nullable = false)
-    private Boolean isUsed = false;  // Initialisation avec valeur par défaut
+    private Boolean isUsed = false;
+
+    @Column(nullable = false)
+    private Double price; // Champ ajouté pour résoudre l'erreur NOT NULL
 
     @Column(nullable = false)
     private LocalDateTime startTimeEpreuve;
+
+    @Column(nullable = false)
+    private Integer remainingPlaces;
 
     @ManyToOne
     @JoinColumn(name = "achat_id")
@@ -61,9 +67,6 @@ public class Ticket {
     )
     private Set<Tarif> tarifs = new HashSet<>();
 
-    @Column(nullable = false)
-    private int remainingPlaces;
-
     public Ticket() {
         // Constructeur par défaut nécessaire pour JPA
     }
@@ -72,11 +75,13 @@ public class Ticket {
     public Ticket(
         @JsonProperty("seat") String seat,
         @JsonProperty("isUsed") Boolean isUsed,
+        @JsonProperty("price") Double price,
         @JsonProperty("startTimeEpreuve") LocalDateTime startTimeEpreuve,
-        @JsonProperty("remainingPlaces") int remainingPlaces) {
+        @JsonProperty("remainingPlaces") Integer remainingPlaces) {
         
         this.seat = seat;
         this.isUsed = isUsed != null ? isUsed : false;
+        this.price = price; // Initialisation du nouveau champ
         this.startTimeEpreuve = startTimeEpreuve;
         this.remainingPlaces = remainingPlaces;
     }
@@ -106,12 +111,28 @@ public class Ticket {
         this.isUsed = isUsed != null ? isUsed : false;
     }
 
+    public Double getPrice() {
+        return price;
+    }
+
+    public void setPrice(Double price) {
+        this.price = price;
+    }
+
     public LocalDateTime getStartTimeEpreuve() {
         return startTimeEpreuve;
     }
 
     public void setStartTimeEpreuve(LocalDateTime startTimeEpreuve) {
         this.startTimeEpreuve = startTimeEpreuve;
+    }
+
+    public Integer getRemainingPlaces() {
+        return remainingPlaces;
+    }
+
+    public void setRemainingPlaces(Integer remainingPlaces) {
+        this.remainingPlaces = remainingPlaces;
     }
 
     public Achat getAchat() {
@@ -163,14 +184,6 @@ public class Ticket {
 
     public void setTarifs(Set<Tarif> tarifs) {
         this.tarifs = tarifs;
-    }
-
-    public int getRemainingPlaces() {
-        return remainingPlaces;
-    }
-
-    public void setRemainingPlaces(int remainingPlaces) {
-        this.remainingPlaces = remainingPlaces;
     }
 
     public boolean isUsed() {
