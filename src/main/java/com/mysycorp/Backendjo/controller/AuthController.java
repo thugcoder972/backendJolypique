@@ -1,7 +1,11 @@
 package com.mysycorp.Backendjo.controller;
 
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
+
+import org.springframework.security.core.AuthenticationException;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -46,26 +50,49 @@ public class AuthController {
         }
     }
 
+    // @PostMapping("/login")
+    // public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) {
+    //     try {
+    //         // Authentifier l'utilisateur
+    //         authenticationManager.authenticate(
+    //                 new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
+    //         );
+
+    //         // Charger les UserDetails après l'authentification
+    //         UserDetails userDetails = authService.loadUserByUsername(authRequest.getUsername());
+
+    //         // Générer le token JWT à partir des UserDetails
+    //         String token = jwtTokenUtil.generateToken(userDetails);
+
+    //         // Renvoyer le token dans la réponse
+    //         return ResponseEntity.ok("Token : " + token);
+    //     } catch (RuntimeException e) {
+    //         return ResponseEntity.badRequest().body(e.getMessage());
+    //     }
+    // }
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) {
-        try {
-            // Authentifier l'utilisateur
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
-            );
+public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) {
+    try {
+        authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
+        );
 
-            // Charger les UserDetails après l'authentification
-            UserDetails userDetails = authService.loadUserByUsername(authRequest.getUsername());
+        UserDetails userDetails = authService.loadUserByUsername(authRequest.getUsername());
+        String token = jwtTokenUtil.generateToken(userDetails);
 
-            // Générer le token JWT à partir des UserDetails
-            String token = jwtTokenUtil.generateToken(userDetails);
-
-            // Renvoyer le token dans la réponse
-            return ResponseEntity.ok("Token : " + token);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        // Retournez un JSON structuré au lieu d'une String
+        Map<String, String> response = new HashMap<>();
+        response.put("token", token);
+        response.put("message", "Authentication successful");
+        
+        return ResponseEntity.ok(response); // Format: {"token": "eyJ...", "message": "..."}
+        
+    } catch (AuthenticationException e) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", "Invalid username/password");
+        return ResponseEntity.status(401).body(errorResponse);
     }
+}
 
     public String generateUniqueEmail() {
         String randomId = UUID.randomUUID().toString();
