@@ -128,4 +128,6 @@ public class EpreuveSportiveControllerTest {
         assertEquals(1, response.getBody().size());
         assertEquals(60L, response.getBody().get(0).getDurationInSeconds());
     }
+
+    
 }

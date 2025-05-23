@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -97,4 +98,22 @@ public class EpreuveSportiveController {
             .collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
     }
+@GetMapping("/{id}/ticket-id")
+public ResponseEntity<Long> getTicketIdByEpreuveId(@PathVariable Long id) {
+    Optional<EpreuveSportive> epreuveOpt = epreuveSportiveRepository.findById(id);
+    
+    if (epreuveOpt.isEmpty()) {
+        return ResponseEntity.notFound().build();
+    }
+    
+    EpreuveSportive epreuve = epreuveOpt.get();
+    Long ticketId = epreuve.getTicketId();
+    
+    if (ticketId == null) {
+        return ResponseEntity.notFound().build();
+    }
+    
+    return ResponseEntity.ok(ticketId);
+}
+
 }

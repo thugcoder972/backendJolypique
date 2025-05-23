@@ -13,15 +13,22 @@ import com.mysycorp.Backendjo.repository.TicketRepository;
 import com.mysycorp.Backendjo.repository.UserRepository;
 import com.mysycorp.Backendjo.service.AchatService;
 
+import io.jsonwebtoken.JwtException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.token.TokenService;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -34,16 +41,19 @@ public class AchatController {
     private final UserRepository userRepository;
     private final TicketRepository ticketRepository;
     private final AchatMapper achatMapper;
+   
 
     public AchatController(AchatRepository achatRepository,
                          UserRepository userRepository,
                          TicketRepository ticketRepository,
-                         AchatMapper achatMapper) {
+                         AchatMapper achatMapper ) {
         this.achatRepository = achatRepository;
         this.userRepository = userRepository;
         this.ticketRepository = ticketRepository;
         this.achatMapper = achatMapper;
+       
     }
+    
 
     @PostMapping
     @Transactional
@@ -98,7 +108,47 @@ public class AchatController {
         return ResponseEntity.ok(achats.stream()
                 .map(achatMapper::toDTO)
                 .collect(Collectors.toList()));
+            
     }
+   @GetMapping("/user-achats")
+public ResponseEntity<List<AchatDTO>> getUserAchats(
+    @RequestHeader("Authorization") String authHeader) {
+    
+    try {
+        // 1. Extraire directement le userId du token JWT
+        String token = authHeader.replace("Bearer ", "");
+        String userId = extractUserIdFromToken(token); // Méthode locale
+        
+        // 2. Récupérer l'utilisateur
+        User user = userRepository.findById(Long.parseLong(userId))
+            .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
+        
+        // 3. Récupérer les achats
+        return ResponseEntity.ok(
+            achatRepository.findByUserWithTickets(user.getId()).stream()
+                .map(achatMapper::toDTO)
+                .collect(Collectors.toList())
+        );
+        
+    } catch (JwtException | NumberFormatException e) {
+        return ResponseEntity.badRequest().build();
+    } catch (ResourceNotFoundException e) {
+        return ResponseEntity.notFound().build();
+    } catch (Exception e) {
+        return ResponseEntity.internalServerError().build();
+    }
+}
+
+// Méthode utilitaire interne pour extraire le userId
+private String extractUserIdFromToken(String jwtToken) {
+    // Solution basique - à adapter selon votre structure JWT
+    String[] parts = jwtToken.split("\\.");
+    if (parts.length > 0) {
+        String payload = new String(Base64.getDecoder().decode(parts[1]));
+        return payload.split("\"sub\":\"")[1].split("\"")[0];
+    }
+    throw new JwtException("Token JWT invalide");
+}
 
     @PostMapping("/{achatId}/pay")
     @Transactional

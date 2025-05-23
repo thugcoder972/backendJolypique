@@ -50,26 +50,7 @@ public class AuthController {
         }
     }
 
-    // @PostMapping("/login")
-    // public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) {
-    //     try {
-    //         // Authentifier l'utilisateur
-    //         authenticationManager.authenticate(
-    //                 new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
-    //         );
-
-    //         // Charger les UserDetails après l'authentification
-    //         UserDetails userDetails = authService.loadUserByUsername(authRequest.getUsername());
-
-    //         // Générer le token JWT à partir des UserDetails
-    //         String token = jwtTokenUtil.generateToken(userDetails);
-
-    //         // Renvoyer le token dans la réponse
-    //         return ResponseEntity.ok("Token : " + token);
-    //     } catch (RuntimeException e) {
-    //         return ResponseEntity.badRequest().body(e.getMessage());
-    //     }
-    // }
+    
     @PostMapping("/login")
 public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) {
     try {
