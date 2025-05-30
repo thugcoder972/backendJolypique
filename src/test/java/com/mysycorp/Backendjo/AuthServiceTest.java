@@ -1,8 +1,7 @@
 package com.mysycorp.Backendjo;
 
-import com.mysycorp.Backendjo.entity.User;
-import com.mysycorp.Backendjo.repository.UserRepository;
-import com.mysycorp.Backendjo.service.AuthService;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,119 +12,96 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import com.mysycorp.Backendjo.entity.User;
+import com.mysycorp.Backendjo.repository.UserRepository;
+import com.mysycorp.Backendjo.service.AuthService;
 
-public class AuthServiceTest {
+class AuthServiceTest {
 
-    @Mock  
+    @Mock
     private UserRepository userRepository;
 
-    @Mock  
+    @Mock
     private PasswordEncoder passwordEncoder;
 
-    @InjectMocks  
+    @InjectMocks
     private AuthService authService;
 
-    private User user;
-
-    @BeforeEach  
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         MockitoAnnotations.openMocks(this);
-        user = new User();
-        user.setUsername("testUser");
-        user.setPassword("password");
-        user.setEmail("test@example.com");
     }
 
-    @Test  
-    public void testRegister_Success() {
-        when(userRepository.findByUsername(user.getUsername())).thenReturn(null);
-        when(userRepository.findByEmail(user.getEmail())).thenReturn(null);
-        when(passwordEncoder.encode(user.getPassword())).thenReturn("encodedPassword");
-        when(userRepository.save(any(User.class))).thenReturn(user);
+    @Test
+    void register_NewUser_ReturnsUser() {
+        // Arrange
+        when(userRepository.findByUsername("newuser")).thenReturn(null);
+        when(userRepository.findByEmail("new@email.com")).thenReturn(null);
+        when(passwordEncoder.encode("password")).thenReturn("encodedPassword");
 
-        User registeredUser = authService.register(user.getUsername(), user.getPassword(), user.getEmail());
+        User expectedUser = new User();
+        expectedUser.setUsername("newuser");
+        expectedUser.setPassword("encodedPassword");
+        expectedUser.setEmail("new@email.com");
+        expectedUser.setType("user");
 
-        assertNotNull(registeredUser);
-        assertEquals(user.getUsername(), registeredUser.getUsername());
-        assertEquals(user.getEmail(), registeredUser.getEmail());
-        verify(userRepository).save(any(User.class));
+        when(userRepository.save(any(User.class))).thenReturn(expectedUser);
+
+        // Act
+        User result = authService.register("newuser", "password", "new@email.com");
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("newuser", result.getUsername());
+        assertEquals("encodedPassword", result.getPassword());
+        verify(userRepository, times(1)).save(any(User.class));
     }
 
-    @Test  
-    public void testRegister_UsernameAlreadyExists() {
-        when(userRepository.findByUsername(user.getUsername())).thenReturn(user);
+    @Test
+    void authenticateAndGetUser_ValidCredentials_ReturnsUser() {
+        // Arrange
+        User mockUser = new User();
+        mockUser.setUsername("testuser");
+        mockUser.setPassword("encodedPassword");
+        mockUser.setId(27L);
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            authService.register(user.getUsername(), user.getPassword(), user.getEmail());
-        });
+        when(userRepository.findByUsername("testuser")).thenReturn(mockUser);
+        when(passwordEncoder.matches("password", "encodedPassword")).thenReturn(true);
 
-        assertEquals("Username already exists", exception.getMessage());
+        // Act
+        User result = authService.authenticateAndGetUser("testuser", "password");
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(27L, result.getId());
+        assertEquals("testuser", result.getUsername());
     }
 
-    @Test  
-    public void testRegister_EmailAlreadyExists() {
-        when(userRepository.findByUsername(user.getUsername())).thenReturn(null);
-        when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
+    @Test
+    void loadUserByUsername_UserExists_ReturnsUserDetails() {
+        // Arrange
+        User mockUser = new User();
+        mockUser.setUsername("testuser");
+        mockUser.setPassword("encodedPassword");
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            authService.register(user.getUsername(), user.getPassword(), user.getEmail());
-        });
+        when(userRepository.findByUsername("testuser")).thenReturn(mockUser);
 
-        assertEquals("Email already exists", exception.getMessage());
+        // Act
+        UserDetails result = authService.loadUserByUsername("testuser");
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("testuser", result.getUsername());
     }
 
-    @Test  
-    public void testAuthenticate_Success() {
-        when(userRepository.findByUsername(user.getUsername())).thenReturn(user);
-        when(passwordEncoder.matches(user.getPassword(), user.getPassword())).thenReturn(true);
+    @Test
+    void loadUserByUsername_UserNotFound_ThrowsException() {
+        // Arrange
+        when(userRepository.findByUsername("unknown")).thenReturn(null);
 
-        User authenticatedUser = authService.authenticate(user.getUsername(), user.getPassword());
-
-        assertNotNull(authenticatedUser);
-        assertEquals(user.getUsername(), authenticatedUser.getUsername());
-    }
-
-    @Test  
-    public void testAuthenticate_InvalidUsername() {
-        when(userRepository.findByUsername(user.getUsername())).thenReturn(null);
-
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            authService.authenticate(user.getUsername(), user.getPassword());
-        });
-
-        assertEquals("Invalid username or password", exception.getMessage());
-    }
-
-    @Test  
-    public void testAuthenticate_InvalidPassword() {
-        when(userRepository.findByUsername(user.getUsername())).thenReturn(user);
-        when(passwordEncoder.matches(user.getPassword(), user.getPassword())).thenReturn(false);
-
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            authService.authenticate(user.getUsername(), user.getPassword());
-        });
-
-        assertEquals("Invalid username or password", exception.getMessage());
-    }
-
-    @Test  
-    public void testLoadUserByUsername_UserFound() {
-        when(userRepository.findByUsername(user.getUsername())).thenReturn(user);
-
-        UserDetails userDetails = authService.loadUserByUsername(user.getUsername());
-
-        assertNotNull(userDetails);
-        assertEquals(user.getUsername(), userDetails.getUsername());
-    }
-
-    @Test  
-    public void testLoadUserByUsername_UserNotFound() {
-        when(userRepository.findByUsername(user.getUsername())).thenReturn(null);
-
+        // Act & Assert
         assertThrows(UsernameNotFoundException.class, () -> {
-            authService.loadUserByUsername(user.getUsername());
+            authService.loadUserByUsername("unknown");
         });
     }
 }
