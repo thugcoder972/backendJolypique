@@ -85,11 +85,6 @@
 
 package com.mysycorp.Backendjo.controller;
 
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -104,6 +99,9 @@ import com.mysycorp.Backendjo.dto.AuthRequest;
 import com.mysycorp.Backendjo.entity.User;
 import com.mysycorp.Backendjo.service.AuthService;
 import com.mysycorp.Backendjo.util.JwtTokenUtil;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -121,23 +119,52 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody AuthRequest authRequest) {
+    public ResponseEntity<?> register(@RequestBody Map<String, String> registrationData) {
+        System.out.println("[AuthController] Requête d'inscription reçue");
+        System.out.println("[AuthController] Données reçues: " + registrationData.toString());
+
         try {
-            String email = (authRequest.getEmail() == null || authRequest.getEmail().isEmpty()) 
-                ? generateUniqueEmail() 
-                : authRequest.getEmail();
+            // Validation
+            if (registrationData.get("username") == null || registrationData.get("username").isEmpty() ||
+                registrationData.get("password") == null || registrationData.get("password").isEmpty()) {
+                System.out.println("[AuthController] Validation échouée: username/password manquants");
+                return ResponseEntity.badRequest().body(
+                    Map.of("error", "Username and password are required")
+                );
+            }
+
+            // Enregistrement
+            System.out.println("[AuthController] Tentative d'enregistrement...");
+            authService.register(
+                registrationData.get("username"),
+                registrationData.get("password"),
+                registrationData.get("email"),
+                registrationData.get("tel"),
+                registrationData.get("type")
+            );
+
+            System.out.println("[AuthController] Enregistrement réussi");
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "User registered successfully"
+            ));
             
-            authService.register(authRequest.getUsername(), authRequest.getPassword(), email);
-            return ResponseEntity.ok("User registered successfully");
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            System.out.println("[AuthController] Erreur lors de l'enregistrement: " + e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", e.getMessage()
+            ));
         }
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) {
+        System.out.println("[AuthController] Requête de connexion reçue pour: " + authRequest.getUsername());
+
         try {
-            // Authentification Spring Security
+            // Authentification
+            System.out.println("[AuthController] Tentative d'authentification...");
             authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                     authRequest.getUsername(), 
@@ -145,33 +172,30 @@ public class AuthController {
                 )
             );
 
-            // Récupération de l'utilisateur avec son vrai ID
-            User authenticatedUser = authService.authenticateAndGetUser(
+            // Récupération user
+            System.out.println("[AuthController] Authentification réussie, génération du token...");
+            User user = authService.authenticateAndGetUser(
                 authRequest.getUsername(), 
                 authRequest.getPassword()
             );
             
-            // Génération du token avec le vrai ID
+            // Génération token
             UserDetails userDetails = authService.loadUserByUsername(authRequest.getUsername());
-            String token = jwtTokenUtil.generateToken(userDetails, authenticatedUser.getId());
+            String token = jwtTokenUtil.generateToken(userDetails, user.getId());
 
-            // Construction de la réponse
+            // Réponse
             Map<String, Object> response = new HashMap<>();
             response.put("token", token);
-            response.put("userId", authenticatedUser.getId());
-            response.put("username", authenticatedUser.getUsername());
+            response.put("userId", user.getId());
+            response.put("username", user.getUsername());
             response.put("message", "Login successful");
-            
+
+            System.out.println("[AuthController] Connexion réussie pour user ID: " + user.getId());
             return ResponseEntity.ok(response);
             
         } catch (AuthenticationException e) {
+            System.out.println("[AuthController] Échec de l'authentification: " + e.getMessage());
             return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
         }
-    }
-
-    private String generateUniqueEmail() {
-        String randomId = UUID.randomUUID().toString();
-        long timestamp = Instant.now().toEpochMilli();
-        return "user+" + randomId + timestamp + "@example.com";
     }
 }

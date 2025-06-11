@@ -48,7 +48,7 @@ class AuthServiceTest {
         when(userRepository.save(any(User.class))).thenReturn(expectedUser);
 
         // Act
-        User result = authService.register("newuser", "password", "new@email.com");
+        User result = authService.register("newuser", "password", "new@email.com", null, null);
 
         // Assert
         assertNotNull(result);

@@ -41,6 +41,8 @@ public class User implements UserDetails {
 
     @Column(nullable = false)
     private String type = "user";
+    @Column(nullable = false)
+    private String roles = "ROLE_USER";
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
@@ -96,7 +98,12 @@ public class User implements UserDetails {
     public void setType(String type) {
         this.type = type;
     }
-
+    public String getRoles() {
+        return roles;
+    }
+    public void setRoles(String roles) {
+        this.roles = roles;
+    }
     public Set<Achat> getAchats() {
         return achats;
     }
