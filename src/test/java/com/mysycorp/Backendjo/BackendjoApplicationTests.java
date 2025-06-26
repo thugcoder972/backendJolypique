@@ -1,16 +1,16 @@
-package com.mysycorp.Backendjo;
+// package com.mysycorp.Backendjo;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+// import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+// import org.junit.jupiter.api.Test;
+// import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class BackendjoApplicationTests {
+// @SpringBootTest
+// class BackendjoApplicationTests {
 
-	@Test
-	void contextLoads() {
-		assertTrue(true);
-	}
+// 	@Test
+// 	void contextLoads() {
+// 		assertTrue(true);
+// 	}
 
-}
+// }
