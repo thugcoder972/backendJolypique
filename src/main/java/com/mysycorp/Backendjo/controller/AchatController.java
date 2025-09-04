@@ -115,39 +115,92 @@ public ResponseEntity<AchatDTO> createAchat(@RequestBody AchatDTO achatDTO) {
     }
 
     // Version améliorée pour récupérer les achats par userId
-    @GetMapping("/by-user")
-    public ResponseEntity<List<AchatDTO>> getAchatsByUser(
-            @RequestParam(required = false) Long userId,
-            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+    // @GetMapping("user/by-user")
+    // public ResponseEntity<List<AchatDTO>> getAchatsByUser(
+    //         @RequestParam(name = "userId",required = false) Long userId,
+    //         @RequestHeader(value = "Authorization", required = false) String authHeader) {
+    //         System.out.println("==> Requête reçue sur /by-user avec userId=" + userId);
+    
+    //     try {
+    //         // Si userId n'est pas fourni, essayez de le récupérer depuis le token
+    //         if (userId == null) {
+    //             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+    //                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    //             }
+    //             String token = authHeader.replace("Bearer ", "");
+    //             userId = jwtTokenUtil.extractUserId(token);
+    //             System.out.println("==> userId extrait du token : " + userId);
+    //         }
 
-        try {
-            // Si userId n'est pas fourni, essayez de le récupérer depuis le token
-            if (userId == null) {
-                if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-                }
-                String token = authHeader.replace("Bearer ", "");
-                userId = jwtTokenUtil.extractUserId(token);
+    //         // Vérifie que l'utilisateur existe
+    //         if (!userRepository.existsById(userId)) {
+    //             throw new ResourceNotFoundException("Utilisateur non trouvé avec l'ID: " + userId);
+    //         }
+
+    //         List<Achat> achats = achatRepository.findByUserWithTickets(userId);
+    //         return ResponseEntity.ok(achats.stream()
+    //                 .map(achatMapper::toDTO)
+    //                 .collect(Collectors.toList()));
+
+    //     } catch (JwtException e) {
+    //         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    //     } catch (ResourceNotFoundException e) {
+    //         return ResponseEntity.notFound().build();
+    //     } catch (Exception e) {
+    //         return ResponseEntity.internalServerError().build();
+    //     }
+    // }
+
+    @GetMapping("/user/by-user")
+public ResponseEntity<List<AchatDTO>> getAchatsByUser(
+        @RequestParam(name = "userId", required = false) String userIdStr,
+        @RequestHeader(value = "Authorization", required = false) String authHeader) {
+
+    try {
+        System.out.println("DEBUG userIdStr = " + userIdStr);
+
+        Long userId = null;
+
+        // Si userId est fourni dans query param
+        if (userIdStr != null && !userIdStr.isBlank()) {
+            try {
+                userId = Long.valueOf(userIdStr.trim());
+            } catch (NumberFormatException e) {
+                return ResponseEntity.badRequest().body(null);
             }
-
-            // Vérifie que l'utilisateur existe
-            if (!userRepository.existsById(userId)) {
-                throw new ResourceNotFoundException("Utilisateur non trouvé avec l'ID: " + userId);
+        } 
+        // Sinon on récupère depuis le token
+        else {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
-
-            List<Achat> achats = achatRepository.findByUserWithTickets(userId);
-            return ResponseEntity.ok(achats.stream()
-                    .map(achatMapper::toDTO)
-                    .collect(Collectors.toList()));
-
-        } catch (JwtException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        } catch (ResourceNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            String token = authHeader.replace("Bearer ", "");
+            userId = jwtTokenUtil.extractUserId(token);
         }
+
+        // Vérifie que l'utilisateur existe
+        if (!userRepository.existsById(userId)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Récupération des achats
+        List<Achat> achats = achatRepository.findByUserWithTickets(userId);
+
+        // Conversion en DTO
+        List<AchatDTO> dtos = achats.stream()
+                                    .map(achatMapper::toDTO)
+                                    .collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtos);
+
+    } catch (JwtException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.internalServerError().build();
     }
+}
+
 
     // Ancien endpoint conservé pour compatibilité (à déprécier à terme)
     @GetMapping("/user-achats")

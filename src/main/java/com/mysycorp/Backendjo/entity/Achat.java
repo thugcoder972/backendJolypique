@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -44,6 +46,7 @@ public class Achat {
 
     // Relation OneToMany avec Ticket : un achat peut avoir plusieurs tickets
     @OneToMany(mappedBy = "achat", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Ticket> tickets = new ArrayList<>();
 
     // Constructeurs
