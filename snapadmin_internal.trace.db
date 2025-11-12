@@ -9160,3 +9160,48 @@ Caused by: org.h2.mvstore.MVStoreException: The file is locked: /Users/terrymari
 	at org.h2.mvstore.SingleFileStore.open(SingleFileStore.java:81)
 	at org.h2.mvstore.MVStore.<init>(MVStore.java:286)
 	... 162 more
+2025-11-05 23:12:53.849292-04:00 database: flush
+org.h2.message.DbException: Erreur générale: "org.h2.mvstore.MVStoreException: Could not truncate file /Users/terrymarie-sainte/Desktop/backendjo/backendJolypique/snapadmin_internal.mv.db to size 81920 [2.2.224/2]"
+General error: "org.h2.mvstore.MVStoreException: Could not truncate file /Users/terrymarie-sainte/Desktop/backendjo/backendJolypique/snapadmin_internal.mv.db to size 81920 [2.2.224/2]" [50000-224]
+	at org.h2.message.DbException.get(DbException.java:212)
+	at org.h2.message.DbException.convert(DbException.java:407)
+	at org.h2.mvstore.db.Store.lambda$new$0(Store.java:122)
+	at org.h2.mvstore.MVStore.handleException(MVStore.java:1546)
+	at org.h2.mvstore.MVStore.panic(MVStore.java:371)
+	at org.h2.mvstore.FileStore.storeBuffer(FileStore.java:1527)
+	at org.h2.mvstore.FileStore.lambda$serializeAndStore$3(FileStore.java:1432)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:545)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:328)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1095)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:619)
+	at java.base/java.lang.Thread.run(Thread.java:1447)
+Caused by: org.h2.jdbc.JdbcSQLNonTransientException: Erreur générale: "org.h2.mvstore.MVStoreException: Could not truncate file /Users/terrymarie-sainte/Desktop/backendjo/backendJolypique/snapadmin_internal.mv.db to size 81920 [2.2.224/2]"
+General error: "org.h2.mvstore.MVStoreException: Could not truncate file /Users/terrymarie-sainte/Desktop/backendjo/backendJolypique/snapadmin_internal.mv.db to size 81920 [2.2.224/2]" [50000-224]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:566)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
+	... 12 more
+Caused by: org.h2.mvstore.MVStoreException: Could not truncate file /Users/terrymarie-sainte/Desktop/backendjo/backendJolypique/snapadmin_internal.mv.db to size 81920 [2.2.224/2]
+	at org.h2.mvstore.DataUtils.newMVStoreException(DataUtils.java:996)
+	at org.h2.mvstore.SingleFileStore.truncate(SingleFileStore.java:205)
+	at org.h2.mvstore.RandomAccessStore.shrinkIfPossible(RandomAccessStore.java:700)
+	at org.h2.mvstore.RandomAccessStore.shrinkStoreIfPossible(RandomAccessStore.java:680)
+	at org.h2.mvstore.RandomAccessStore.writeChunk(RandomAccessStore.java:377)
+	at org.h2.mvstore.RandomAccessStore.writeChunk(RandomAccessStore.java:28)
+	at org.h2.mvstore.FileStore.storeBuffer(FileStore.java:1524)
+	... 6 more
+Caused by: java.io.IOException: No space left on device
+	at java.base/sun.nio.ch.UnixFileDispatcherImpl.truncate0(Native Method)
+	at java.base/sun.nio.ch.UnixFileDispatcherImpl.truncate(UnixFileDispatcherImpl.java:89)
+	at java.base/sun.nio.ch.FileChannelImpl.truncate(FileChannelImpl.java:613)
+	at org.h2.mvstore.SingleFileStore.truncate(SingleFileStore.java:200)
+	... 11 more
+2025-11-05 23:12:54.872283-04:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientConnectionException: La base de données a été fermée
+The database has been closed [90098-224]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:690)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
+	at org.h2.message.DbException.get(DbException.java:212)
+	at org.h2.engine.SessionLocal.getTransaction(SessionLocal.java:1610)
+	at org.h2.engine.SessionLocal.startStatementWithinTransaction(SessionLocal.java:1631)
+	at org.h2.command.Command.executeQuery(Command.java:186)
+	at jdk.proxy4/jdk.proxy4.$Proxy140.find(Unknown Source)

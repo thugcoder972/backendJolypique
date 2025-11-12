@@ -124,7 +124,23 @@ public class AuthService implements UserDetailsService {
         
         return savedUser;
     }
+   /**
+     * Vérifie la complexité du mot de passe avant enregistrement.
+     */
+    private void validatePasswordStrength(String password) {
+        String PASSWORD_PATTERN = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!]).{8,}$";
 
+        if (!password.matches(PASSWORD_PATTERN)) {
+            System.out.println("[AuthService] Erreur: Mot de passe non conforme");
+            throw new RuntimeException(
+                "Password must contain at least 8 characters, one uppercase, one lowercase, one digit, and one special character."
+            );
+        }
+    }
+
+    /**
+     * Génère un email unique si aucun email n'est fourni.
+     */
     private String generateUniqueEmail() {
         String email = "user_" + UUID.randomUUID().toString().substring(0, 8) + "@example.com";
         System.out.println("[AuthService] Email généré: " + email);
